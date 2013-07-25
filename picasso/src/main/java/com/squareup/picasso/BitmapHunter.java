@@ -19,7 +19,15 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.util.Log;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -31,6 +39,8 @@ import static android.provider.ContactsContract.Contacts;
 import static com.squareup.picasso.Picasso.LoadedFrom.MEMORY;
 
 abstract class BitmapHunter implements Runnable {
+
+  public static final String MIME_TYPE_GIF = "image/gif";
 
   /**
    * Global lock for bitmap decoding to ensure that we are only are decoding one at a time. Since
@@ -51,7 +61,7 @@ abstract class BitmapHunter implements Runnable {
   final PicassoBitmapOptions options;
   final boolean skipCache;
 
-  Bitmap result;
+  Image result;
   Future<?> future;
   Picasso.LoadedFrom loadedFrom;
   Exception exception;
@@ -90,35 +100,121 @@ abstract class BitmapHunter implements Runnable {
     }
   }
 
-  abstract Bitmap decode(Uri uri, PicassoBitmapOptions options, int retryCount) throws IOException;
+  abstract Image decode(Uri uri, PicassoBitmapOptions options, int retryCount) throws IOException;
 
   abstract Picasso.LoadedFrom getLoadedFrom();
 
-  Bitmap hunt() throws IOException {
-    Bitmap bitmap;
+  Image hunt() throws IOException {
+    Image image;
 
     if (!skipCache) {
-      bitmap = cache.get(key);
-      if (bitmap != null) {
+      image = cache.get(key);
+      if (image != null) {
         loadedFrom = MEMORY;
-        return bitmap;
+        return image;
       }
     }
 
-    bitmap = decode(uri, options, retryCount);
+    image = decode(uri, options, retryCount);
 
-    if (bitmap != null && (options != null || transformations != null)) {
+    if (image != null && image.isBitmap() && (options != null || transformations != null)) {
       synchronized (DECODE_LOCK) {
         if (options != null) {
-          bitmap = transformResult(options, bitmap, options.exifRotation);
+          image.setBitmap(transformResult(options, image.getBitmap(), options.exifRotation));
         }
         if (transformations != null) {
-          bitmap = applyCustomTransformations(transformations, bitmap);
+          image.setBitmap(applyCustomTransformations(transformations, image.getBitmap()));
         }
       }
     }
 
-    return bitmap;
+    return image;
+
+    /*
+    // todo Remove
+    byte[] imageBytes = null;
+    String imgUrl = uri.toString();
+    if (imgUrl.startsWith("http")) {
+      try {
+        Log.d(StatsSnapshot.TAG, "Trying to fully load " + imgUrl);
+        DefaultHttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet(imgUrl);
+        HttpResponse response = client.execute(request);
+        HttpEntity entity = response.getEntity();
+        Header contentType = entity.getContentType();
+
+        if (contentType != null) {
+          String contentTypeValue = contentType.getValue();
+          Log.d(StatsSnapshot.TAG, "  Content type " + contentTypeValue);
+          if (contentTypeValue.contains(MIME_TYPE_GIF)) {
+            Log.d(StatsSnapshot.TAG, "  Looks like a gif, loading " + contentTypeValue);
+            int imageLength = (int) (entity.getContentLength());
+            InputStream is = entity.getContent();
+
+            imageBytes = new byte[imageLength];
+            int bytesRead = 0;
+            while (bytesRead < imageLength) {
+              int n = is.read(imageBytes, bytesRead, imageLength - bytesRead);
+              if (n <= 0)
+                ; // do some error handling
+              bytesRead += n;
+            }
+          }
+        }
+      } catch (IOException e) {
+        Log.e(StatsSnapshot.TAG, "Error downloading gif bytes", e);
+        return null;
+      }
+    }
+
+    if (imageBytes != null) {
+      Log.d(StatsSnapshot.TAG, "  Loaded and returning gif of size " + imageBytes.length);
+      return new Image(imageBytes);
+    } else {
+      Bitmap bitmap = decode(uri, options, retryCount);
+
+      if (bitmap != null && (options != null || transformations != null)) {
+        synchronized (DECODE_LOCK) {
+          if (options != null) {
+            bitmap = transformResult(options, bitmap, options.exifRotation);
+          }
+          if (transformations != null) {
+            bitmap = applyCustomTransformations(transformations, bitmap);
+          }
+        }
+      }
+
+      return new Image(bitmap);
+    }
+    */
+  }
+
+  // todo Remove
+  private boolean isGifUri(Uri uri) {
+    if (uri.toString().startsWith("http")) {
+      DefaultHttpClient client = new DefaultHttpClient();
+      HttpGet request = new HttpGet(uri.toString());
+      try {
+        HttpResponse response = client.execute(request);
+        HttpEntity entity = response.getEntity();
+        Header contentType = entity.getContentType();
+        if (contentType != null) {
+          String contentTypeValue = contentType.getValue();
+          if (contentTypeValue.contains(MIME_TYPE_GIF)) {
+            return true;
+          }
+        }
+      } catch (IOException e) {
+        Log.d(StatsSnapshot.TAG, "Unable to connect to image uri, can't determine if gif.");
+        return false;
+      } finally {
+        // todo Apparently we don't need to close connections for HttpClient?
+      }
+    } else {
+      // todo We might want to support file based gif uri's here, for now don't.
+      return false;
+    }
+    return false;
   }
 
   void attach(Request request) {
@@ -141,7 +237,7 @@ abstract class BitmapHunter implements Runnable {
     return skipCache;
   }
 
-  Bitmap getResult() {
+  Image getResult() {
     return result;
   }
 
@@ -154,7 +250,7 @@ abstract class BitmapHunter implements Runnable {
   }
 
   static BitmapHunter forRequest(Context context, Picasso picasso, Dispatcher dispatcher,
-      Cache cache, Request request, Downloader downloader, boolean airplaneMode) {
+                                 Cache cache, Request request, Downloader downloader, boolean airplaneMode) {
     if (request.getResourceId() != 0) {
       return new ResourceBitmapHunter(context, picasso, dispatcher, cache, request);
     }

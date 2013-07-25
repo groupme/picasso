@@ -82,14 +82,14 @@ public class PicassoTest {
   }
 
   @Test public void quickMemoryCheckReturnsBitmapIfInCache() throws Exception {
-    when(cache.get(URI_KEY_1)).thenReturn(BITMAP_1);
-    Bitmap cached = picasso.quickMemoryCacheCheck(URI_KEY_1);
-    assertThat(cached).isEqualTo(BITMAP_1);
+    when(cache.get(URI_KEY_1)).thenReturn(new Image(BITMAP_1));
+    Image cached = picasso.quickMemoryCacheCheck(URI_KEY_1);
+    assertThat(cached.getBitmap()).isEqualTo(BITMAP_1);
     verify(stats).cacheHit();
   }
 
   @Test public void quickMemoryCheckReturnsNullIfNotInCache() throws Exception {
-    Bitmap cached = picasso.quickMemoryCacheCheck(URI_KEY_1);
+    Image cached = picasso.quickMemoryCacheCheck(URI_KEY_1);
     assertThat(cached).isNull();
     verifyZeroInteractions(stats);
   }
@@ -98,7 +98,7 @@ public class PicassoTest {
     Request request1 = mockRequest(URI_KEY_1, URI_1, mockImageViewTarget());
     Request request2 = mockCanceledRequest();
     List<Request> list = Arrays.asList(request1, request2);
-    picasso.complete(list, BITMAP_1, Picasso.LoadedFrom.MEMORY);
+    picasso.complete(list, new Image(BITMAP_1), Picasso.LoadedFrom.MEMORY);
     verify(request1).complete(BITMAP_1, Picasso.LoadedFrom.MEMORY);
     verify(request2, never()).complete(eq(BITMAP_1), any(Picasso.LoadedFrom.class));
   }

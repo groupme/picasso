@@ -19,11 +19,14 @@ import android.content.Context;
 import android.net.Uri;
 import android.net.http.HttpResponseCache;
 import android.os.Build;
+import android.util.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static com.squareup.picasso.Utils.parseResponseContentTypeHeader;
 import static com.squareup.picasso.Utils.parseResponseSourceHeader;
 
 /**
@@ -32,6 +35,7 @@ import static com.squareup.picasso.Utils.parseResponseSourceHeader;
  */
 public class UrlConnectionDownloader implements Downloader {
   static final String RESPONSE_SOURCE = "X-Android-Response-Source";
+  static final String RESPONSE_CONTENTTYPE = "Content-Type";
 
   private static final Object lock = new Object();
   static volatile Object cache;
@@ -50,6 +54,8 @@ public class UrlConnectionDownloader implements Downloader {
   }
 
   @Override public Response load(Uri uri, boolean localCacheOnly) throws IOException {
+    Log.d(StatsSnapshot.TAG, "Loading with URLConnection downloader");
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       installCacheIfNeeded(context);
     }
@@ -61,8 +67,12 @@ public class UrlConnectionDownloader implements Downloader {
     }
 
     boolean fromCache = parseResponseSourceHeader(connection.getHeaderField(RESPONSE_SOURCE));
+    String contentType = connection.getHeaderField(RESPONSE_CONTENTTYPE);
+    boolean isGif = parseResponseContentTypeHeader(contentType);
+    Log.d(StatsSnapshot.TAG, "*** Header: " + contentType);
+    Log.d(StatsSnapshot.TAG, "** isGif: " + isGif);
 
-    return new Response(connection.getInputStream(), fromCache);
+    return new Response(connection.getInputStream(), fromCache, isGif, connection.getContentLength());
   }
 
   private static void installCacheIfNeeded(Context context) {

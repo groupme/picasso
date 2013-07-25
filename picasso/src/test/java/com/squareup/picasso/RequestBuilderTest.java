@@ -117,7 +117,7 @@ public class RequestBuilderTest {
 
   @Test
   public void intTargetWithQuickMemoryCacheCheckDoesNotSubmit() throws Exception {
-    when(picasso.quickMemoryCacheCheck(URI_KEY_1)).thenReturn(BITMAP_1);
+    when(picasso.quickMemoryCacheCheck(URI_KEY_1)).thenReturn(new Image(BITMAP_1));
     Target target = mockTarget();
     new RequestBuilder(picasso, URI_1, 0).into(target);
     verify(target).onSuccess(BITMAP_1, MEMORY);
@@ -156,7 +156,7 @@ public class RequestBuilderTest {
     Picasso picasso =
         spy(new Picasso(Robolectric.application, mock(Dispatcher.class), Cache.NONE, null,
             mock(Stats.class), true));
-    when(picasso.quickMemoryCacheCheck(URI_KEY_1)).thenReturn(BITMAP_1);
+    when(picasso.quickMemoryCacheCheck(URI_KEY_1)).thenReturn(new Image(BITMAP_1));
     ImageView target = mockImageViewTarget();
     new RequestBuilder(picasso, URI_1, 0).into(target);
     verify(picasso).cancelRequest(target);

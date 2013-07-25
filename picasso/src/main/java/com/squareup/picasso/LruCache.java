@@ -16,13 +16,13 @@
 package com.squareup.picasso;
 
 import android.content.Context;
-import android.graphics.Bitmap;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** A memory cache which uses a least-recently used eviction policy. */
 public class LruCache implements Cache {
-  final LinkedHashMap<String, Bitmap> map;
+  final LinkedHashMap<String, Image> map;
   private final int maxSize;
 
   private int size;
@@ -42,15 +42,15 @@ public class LruCache implements Cache {
       throw new IllegalArgumentException("Max size must be positive.");
     }
     this.maxSize = maxSize;
-    this.map = new LinkedHashMap<String, Bitmap>(0, 0.75f, true);
+    this.map = new LinkedHashMap<String, Image>(0, 0.75f, true);
   }
 
-  @Override public Bitmap get(String key) {
+  @Override public Image get(String key) {
     if (key == null) {
       throw new NullPointerException("key == null");
     }
 
-    Bitmap mapValue;
+    Image mapValue;
     synchronized (this) {
       mapValue = map.get(key);
       if (mapValue != null) {
@@ -63,18 +63,18 @@ public class LruCache implements Cache {
     return null;
   }
 
-  @Override public void set(String key, Bitmap bitmap) {
-    if (key == null || bitmap == null) {
+  @Override public void set(String key, Image image) {
+    if (key == null || image == null) {
       throw new NullPointerException("key == null || bitmap == null");
     }
 
-    Bitmap previous;
+    Image previous;
     synchronized (this) {
       putCount++;
-      size += Utils.getBitmapBytes(bitmap);
-      previous = map.put(key, bitmap);
+      size += image.getSize();
+      previous = map.put(key, image);
       if (previous != null) {
-        size -= Utils.getBitmapBytes(previous);
+        size -= previous.getSize();
       }
     }
 
@@ -84,7 +84,7 @@ public class LruCache implements Cache {
   private void trimToSize(int maxSize) {
     while (true) {
       String key;
-      Bitmap value;
+      Image value;
       synchronized (this) {
         if (size < 0 || (map.isEmpty() && size != 0)) {
           throw new IllegalStateException(
@@ -95,11 +95,11 @@ public class LruCache implements Cache {
           break;
         }
 
-        Map.Entry<String, Bitmap> toEvict = map.entrySet().iterator().next();
+        Map.Entry<String, Image> toEvict = map.entrySet().iterator().next();
         key = toEvict.getKey();
         value = toEvict.getValue();
         map.remove(key);
-        size -= Utils.getBitmapBytes(value);
+        size -= value.getSize();
         evictionCount++;
       }
     }
@@ -130,7 +130,7 @@ public class LruCache implements Cache {
     return missCount;
   }
 
-  /** Returns the number of times {@link #set(String, Bitmap)} was called. */
+  /** Returns the number of times {@link #set(String, Image)} was called. */
   public final synchronized int putCount() {
     return putCount;
   }

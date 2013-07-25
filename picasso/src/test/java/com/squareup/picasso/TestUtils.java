@@ -79,7 +79,7 @@ public class TestUtils {
   static BitmapHunter mockHunter(String key, Bitmap result, boolean skipCache) {
     BitmapHunter hunter = mock(BitmapHunter.class);
     when(hunter.getKey()).thenReturn(key);
-    when(hunter.getResult()).thenReturn(result);
+    when(hunter.getResult()).thenReturn(new Image(result));
     when(hunter.shouldSkipCache()).thenReturn(skipCache);
     hunter.retryCount = BitmapHunter.DEFAULT_RETRY_COUNT;
     return hunter;

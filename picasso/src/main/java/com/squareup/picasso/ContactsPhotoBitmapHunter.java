@@ -39,12 +39,12 @@ class ContactsPhotoBitmapHunter extends BitmapHunter {
     this.context = context;
   }
 
-  @Override Bitmap decode(Uri uri, PicassoBitmapOptions options, int retryCount)
+  @Override Image decode(Uri uri, PicassoBitmapOptions options, int retryCount)
       throws IOException {
     InputStream is = null;
     try {
       is = getInputStream();
-      return decodeStream(is, options);
+      return new Image(decodeStream(is, options));
     } finally {
       Utils.closeQuietly(is);
     }

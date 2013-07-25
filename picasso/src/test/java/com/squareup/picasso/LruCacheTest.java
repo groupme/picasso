@@ -34,11 +34,11 @@ import static org.fest.assertions.api.Assertions.assertThat;
 @Config(manifest = Config.NONE)
 public class LruCacheTest {
   // The use of ALPHA_8 simplifies the size math in tests since only one byte is used per-pixel.
-  private final Bitmap A = Bitmap.createBitmap(1, 1, ALPHA_8);
-  private final Bitmap B = Bitmap.createBitmap(1, 1, ALPHA_8);
-  private final Bitmap C = Bitmap.createBitmap(1, 1, ALPHA_8);
-  private final Bitmap D = Bitmap.createBitmap(1, 1, ALPHA_8);
-  private final Bitmap E = Bitmap.createBitmap(1, 1, ALPHA_8);
+  private final Image A = new Image(Bitmap.createBitmap(1, 1, ALPHA_8));
+  private final Image B = new Image(Bitmap.createBitmap(1, 1, ALPHA_8));
+  private final Image C = new Image(Bitmap.createBitmap(1, 1, ALPHA_8));
+  private final Image D = new Image(Bitmap.createBitmap(1, 1, ALPHA_8));
+  private final Image E = new Image(Bitmap.createBitmap(1, 1, ALPHA_8));
 
   private int expectedPutCount;
   private int expectedHitCount;
@@ -149,7 +149,7 @@ public class LruCacheTest {
     assertThat(cache.map).isEmpty();
   }
 
-  private void assertHit(LruCache cache, String key, Bitmap value) {
+  private void assertHit(LruCache cache, String key, Image value) {
     assertThat(cache.get(key)).isEqualTo(value);
     expectedHitCount++;
     assertStatistics(cache);
@@ -170,7 +170,7 @@ public class LruCacheTest {
 
   private void assertSnapshot(LruCache cache, Object... keysAndValues) {
     List<Object> actualKeysAndValues = new ArrayList<Object>();
-    for (Map.Entry<String, Bitmap> entry : cache.map.entrySet()) {
+    for (Map.Entry<String, Image> entry : cache.map.entrySet()) {
       actualKeysAndValues.add(entry.getKey());
       actualKeysAndValues.add(entry.getValue());
     }

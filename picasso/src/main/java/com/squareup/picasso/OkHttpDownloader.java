@@ -17,6 +17,7 @@ package com.squareup.picasso;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import com.squareup.okhttp.HttpResponseCache;
 import com.squareup.okhttp.OkHttpClient;
 import java.io.File;
@@ -24,11 +25,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static com.squareup.picasso.Utils.parseResponseContentTypeHeader;
 import static com.squareup.picasso.Utils.parseResponseSourceHeader;
 
 /** A {@link Downloader} which uses OkHttp to download images. */
 public class OkHttpDownloader implements Downloader {
   static final String RESPONSE_SOURCE = "X-Android-Response-Source";
+  static final String RESPONSE_CONTENTTYPE = "Content-Type";
 
   private final OkHttpClient client;
 
@@ -91,6 +94,7 @@ public class OkHttpDownloader implements Downloader {
   }
 
   @Override public Response load(Uri uri, boolean localCacheOnly) throws IOException {
+    Log.d(StatsSnapshot.TAG, "Loading with okhttp");
     HttpURLConnection connection = openConnection(uri);
     connection.setUseCaches(true);
     if (localCacheOnly) {
@@ -98,7 +102,12 @@ public class OkHttpDownloader implements Downloader {
     }
 
     boolean fromCache = parseResponseSourceHeader(connection.getHeaderField(RESPONSE_SOURCE));
+    String contentType = connection.getHeaderField(RESPONSE_CONTENTTYPE);
+    boolean isGif = parseResponseContentTypeHeader(contentType);
+    Log.d(StatsSnapshot.TAG, "*** Header: " + contentType);
+    Log.d(StatsSnapshot.TAG, "** isGif: " + isGif);
 
-    return new Response(connection.getInputStream(), fromCache);
+
+    return new Response(connection.getInputStream(), fromCache, isGif, connection.getContentLength());
   }
 }

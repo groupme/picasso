@@ -15,21 +15,19 @@
  */
 package com.squareup.picasso;
 
-import android.graphics.Bitmap;
-
 /**
  * A memory cache for storing the most recently used images.
  * <p/>
  * <em>Note:</em> The {@link Cache} is accessed by multiple threads. You must ensure
  * your {@link Cache} implementation is thread safe when {@link Cache#get(String)} or {@link
- * Cache#set(String, android.graphics.Bitmap)} is called.
+ * Cache#set(String, Image)} is called.
  */
 public interface Cache {
   /** Retrieve an image for the specified {@code key} or {@code null}. */
-  Bitmap get(String key);
+  Image get(String key);
 
   /** Store an image in the cache for the specified {@code key}. */
-  void set(String key, Bitmap bitmap);
+  void set(String key, Image image);
 
   /** Returns the current size of the cache in bytes. */
   int size();
@@ -39,11 +37,11 @@ public interface Cache {
 
   /** A cache which does not store any values. */
   Cache NONE = new Cache() {
-    @Override public Bitmap get(String key) {
+    @Override public Image get(String key) {
       return null;
     }
 
-    @Override public void set(String key, Bitmap bitmap) {
+    @Override public void set(String key, Image image) {
       // Ignore.
     }
 

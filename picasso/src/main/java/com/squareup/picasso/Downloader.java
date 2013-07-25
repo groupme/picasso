@@ -37,6 +37,8 @@ public interface Downloader {
   class Response {
     final InputStream stream;
     final boolean cached;
+    final boolean isGif;
+    final int contentLength;
 
     /**
      * Response stream and info.
@@ -44,9 +46,11 @@ public interface Downloader {
      * @param stream Image data stream.
      * @param loadedFromCache {@code true} if the source of the stream is from a local disk cache.
      */
-    public Response(InputStream stream, boolean loadedFromCache) {
+    public Response(InputStream stream, boolean loadedFromCache, boolean isGif, int contentLength) {
       this.stream = stream;
       this.cached = loadedFromCache;
+      this.isGif = isGif;
+      this.contentLength = contentLength;
     }
   }
 }

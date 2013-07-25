@@ -35,9 +35,9 @@ class ResourceBitmapHunter extends BitmapHunter {
     this.resourceId = request.resourceId;
   }
 
-  @Override Bitmap decode(Uri uri, PicassoBitmapOptions options, int retryCount)
+  @Override Image decode(Uri uri, PicassoBitmapOptions options, int retryCount)
       throws IOException {
-    return decodeResource(context.getResources(), resourceId, options);
+    return new Image(decodeResource(context.getResources(), resourceId, options));
   }
 
   @Override Picasso.LoadedFrom getLoadedFrom() {

@@ -27,6 +27,8 @@ import android.os.Looper;
 import android.os.Process;
 import android.os.StatFs;
 import android.provider.Settings;
+import android.util.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +52,8 @@ final class Utils {
   private static final int MIN_DISK_CACHE_SIZE = 5 * 1024 * 1024; // 5MB
   private static final int MAX_DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
   private static final int MAX_MEM_CACHE_SIZE = 20 * 1024 * 1024; // 20MB
+
+  public static final String MIME_TYPE_GIF = "image/gif";
 
   private Utils() {
     // No instances.
@@ -153,6 +157,13 @@ final class Utils {
     } catch (NumberFormatException e) {
       return false;
     }
+  }
+
+  static boolean parseResponseContentTypeHeader(String header) {
+    if (header == null) {
+      return false;
+    }
+    return header.contains(MIME_TYPE_GIF);
   }
 
   static Downloader createDefaultDownloader(Context context) {

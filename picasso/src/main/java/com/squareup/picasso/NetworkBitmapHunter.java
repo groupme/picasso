@@ -18,6 +18,8 @@ package com.squareup.picasso;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,12 +39,28 @@ class NetworkBitmapHunter extends BitmapHunter {
     this.airplaneMode = airplaneMode;
   }
 
-  @Override Bitmap decode(Uri uri, PicassoBitmapOptions options, int retryCount)
+  @Override Image decode(Uri uri, PicassoBitmapOptions options, int retryCount)
       throws IOException {
     InputStream is = null;
     try {
-      is = getInputStream(retryCount == 0 || airplaneMode);
-      return decodeStream(is, options);
+      Response response = getNetworkResponse(retryCount == 0 || airplaneMode);
+      is = response.stream;
+      if (!response.isGif) {
+        return new Image(decodeStream(is, options));
+      } else {
+        // todo Set max size of gif and switch to single frame view
+        byte[] imgData = new byte[response.contentLength];
+        int bytesRead = 0;
+        while (bytesRead < imgData.length) {
+          int n = is.read(imgData, bytesRead, response.contentLength - bytesRead);
+          if (n <= 0)
+            ; // do some error handling
+          bytesRead += n;
+        }
+        Log.d(StatsSnapshot.TAG, "Gif content length: " + response.contentLength);
+        Log.d(StatsSnapshot.TAG, "Actually read bytes: " + bytesRead);
+        return new Image(imgData);
+      }
     } finally {
       Utils.closeQuietly(is);
     }
@@ -52,10 +70,10 @@ class NetworkBitmapHunter extends BitmapHunter {
     return loadedFrom;
   }
 
-  private InputStream getInputStream(boolean localCacheOnly) throws IOException {
+  private Response getNetworkResponse(boolean localCacheOnly) throws IOException {
     Response response = downloader.load(uri, localCacheOnly);
     loadedFrom = response.cached ? DISK : NETWORK;
-    return response.stream;
+    return response;
   }
 
   private Bitmap decodeStream(InputStream stream, PicassoBitmapOptions options) throws IOException {

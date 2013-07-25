@@ -18,7 +18,6 @@ package com.squareup.picasso;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import java.io.IOException;
@@ -33,7 +32,7 @@ class ContentProviderBitmapHunter extends ContentStreamBitmapHunter {
     super(context, picasso, dispatcher, cache, request);
   }
 
-  @Override Bitmap decode(Uri uri, PicassoBitmapOptions options, int retryCount)
+  @Override Image decode(Uri uri, PicassoBitmapOptions options, int retryCount)
       throws IOException {
     if (options != null) {
       options.exifRotation = getContentProviderExifRotation(context.getContentResolver(), uri);

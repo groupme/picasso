@@ -15,6 +15,7 @@
  */
 package com.squareup.picasso;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.widget.ImageView;
@@ -43,7 +44,7 @@ public class ImageViewRequestTest {
     ImageViewRequest request =
         new ImageViewRequest(mock(Picasso.class), URI_1, 0, mockImageViewTarget(), null, null,
             false, false, 0, null, URI_KEY_1, null);
-    request.complete(null, MEMORY);
+    request.complete((Bitmap) null, MEMORY);
   }
 
   @Test

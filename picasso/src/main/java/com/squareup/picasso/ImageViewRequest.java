@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.widget.ImageView;
+import net.frakbot.imageviewex.ImageViewEx;
+
 import java.util.List;
 
 class ImageViewRequest extends Request<ImageView> {
@@ -33,6 +35,26 @@ class ImageViewRequest extends Request<ImageView> {
     Context context = picasso.context;
     boolean debugging = picasso.debugging;
     PicassoDrawable.setBitmap(target, context, result, from, noFade, debugging);
+
+    if (callback != null) {
+      callback.onSuccess();
+    }
+  }
+
+  @Override void complete(byte[] result, Picasso.LoadedFrom from) {
+    if (result == null) {
+      throw new AssertionError(
+          String.format("Attempted to complete request with no result!\n%s", this));
+    }
+
+    ImageView target = this.target.get();
+    if (target == null) {
+      return;
+    }
+
+    if (target instanceof ImageViewEx) {
+      ((ImageViewEx)target).setSource(result);
+    }
 
     if (callback != null) {
       callback.onSuccess();

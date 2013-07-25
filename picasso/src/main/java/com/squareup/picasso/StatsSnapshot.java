@@ -21,7 +21,7 @@ import java.io.StringWriter;
 
 /** Represents all stats for a {@link Picasso} instance at a single point in time. */
 public class StatsSnapshot {
-  private static final String TAG = "Picasso";
+  public static final String TAG = "Picasso";
 
   public final int maxSize;
   public final int size;

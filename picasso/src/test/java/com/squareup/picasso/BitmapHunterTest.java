@@ -97,20 +97,20 @@ public class BitmapHunterTest {
     Request request = mockRequest(URI_KEY_1, URI_1, mockImageViewTarget());
     BitmapHunter hunter =
         spy(new TestableBitmapHunter(picasso, dispatcher, cache, request, BITMAP_1));
-    Bitmap result = hunter.hunt();
+    Image result = hunter.hunt();
     verify(cache).get(URI_KEY_1);
     verify(hunter).decode(URI_1, request.options, hunter.retryCount);
-    assertThat(result).isEqualTo(BITMAP_1);
+    assertThat(result.getBitmap()).isEqualTo(BITMAP_1);
   }
 
   @Test public void huntReturnsWhenResultInCache() throws Exception {
-    when(cache.get(URI_KEY_1)).thenReturn(BITMAP_1);
+    when(cache.get(URI_KEY_1)).thenReturn(new Image(BITMAP_1));
     Request request = mockRequest(URI_KEY_1, URI_1, mockImageViewTarget());
     BitmapHunter hunter = spy(new TestableBitmapHunter(picasso, dispatcher, cache, request, BITMAP_1));
-    Bitmap result = hunter.hunt();
+    Image result = hunter.hunt();
     verify(cache).get(URI_KEY_1);
     verify(hunter, never()).decode(URI_1, request.options, hunter.retryCount);
-    assertThat(result).isEqualTo(BITMAP_1);
+    assertThat(result.getBitmap()).isEqualTo(BITMAP_1);
   }
 
   @Test public void attachRequest() throws Exception {
@@ -452,11 +452,11 @@ public class BitmapHunterTest {
       this.throwException = throwException;
     }
 
-    @Override Bitmap decode(Uri uri, PicassoBitmapOptions options, int retryCount) throws IOException {
+    @Override Image decode(Uri uri, PicassoBitmapOptions options, int retryCount) throws IOException {
       if (throwException) {
         throw new IOException("Failed.");
       }
-      return result;
+      return new Image(result);
     }
 
     @Override Picasso.LoadedFrom getLoadedFrom() {

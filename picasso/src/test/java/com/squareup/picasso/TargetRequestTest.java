@@ -40,7 +40,7 @@ public class TargetRequestTest {
     TargetRequest request =
         new TargetRequest(mock(Picasso.class), URI_1, 0, mockTarget(), null, null, false,
             URI_KEY_1);
-    request.complete(null, MEMORY);
+    request.complete((Bitmap) null, MEMORY);
   }
 
   @Test

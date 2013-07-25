@@ -210,19 +210,23 @@ public class Picasso {
     dispatcher.dispatchSubmit(request);
   }
 
-  Bitmap quickMemoryCacheCheck(String key) {
-    Bitmap cached = cache.get(key);
+  Image quickMemoryCacheCheck(String key) {
+    Image cached = cache.get(key);
     if (cached != null) {
       stats.cacheHit();
     }
     return cached;
   }
 
-  void complete(List<Request> joined, Bitmap result, LoadedFrom from) {
+  void complete(List<Request> joined, Image result, LoadedFrom from) {
     for (Request join : joined) {
       if (!join.isCancelled()) {
         targetToRequest.remove(join.getTarget());
-        join.complete(result, from);
+        if (result.isBitmap()) {
+          join.complete(result.getBitmap(), from);
+        } else {
+          join.complete(result.getGifBytes(), from);
+        }
       }
     }
   }

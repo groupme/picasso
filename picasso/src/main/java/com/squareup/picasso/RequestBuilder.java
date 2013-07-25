@@ -19,10 +19,13 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import net.frakbot.imageviewex.ImageViewEx;
 import org.jetbrains.annotations.TestOnly;
 
 import static com.squareup.picasso.BitmapHunter.forRequest;
@@ -296,8 +299,9 @@ public class RequestBuilder {
     }
 
     Request request = new GetRequest(picasso, uri, resourceId, options, transformations, skipCache);
+    // todo This is cheesy at the moment, pass in the Image
     return forRequest(picasso.context, picasso, picasso.dispatcher, picasso.cache, request,
-        picasso.dispatcher.downloader, Utils.isAirplaneModeOn(picasso.context)).hunt();
+        picasso.dispatcher.downloader, Utils.isAirplaneModeOn(picasso.context)).hunt().getBitmap();
   }
 
   /**
@@ -331,10 +335,12 @@ public class RequestBuilder {
 
     String requestKey = createKey(uri, resourceId, options, transformations);
 
-    Bitmap bitmap = picasso.quickMemoryCacheCheck(requestKey);
-    if (bitmap != null) {
+    Image image = picasso.quickMemoryCacheCheck(requestKey);
+    if (image != null) {
       picasso.cancelRequest(target);
-      target.onSuccess(bitmap, MEMORY);
+      if (image.isBitmap()) {
+        target.onSuccess(image.getBitmap(), MEMORY);
+      }
       return;
     }
 
@@ -375,19 +381,38 @@ public class RequestBuilder {
       return;
     }
 
+    boolean targetIsEx = target instanceof ImageViewEx;
+
     String requestKey = createKey(uri, resourceId, options, transformations);
 
     // Look for the target bitmap in the memory cache without moving to a background thread.
-    Bitmap bitmap = picasso.quickMemoryCacheCheck(requestKey);
-    if (bitmap != null) {
-      picasso.cancelRequest(target);
-      PicassoDrawable.setBitmap(target, picasso.context, bitmap, MEMORY, noFade, picasso.debugging);
+    Image image = picasso.quickMemoryCacheCheck(requestKey);
+    if (image != null) {
+      if (image.isBitmap()) {
+        picasso.cancelRequest(target);
+        PicassoDrawable.setBitmap(target, picasso.context, image.getBitmap(), MEMORY, noFade, picasso.debugging);
 
-      if (callback != null) {
-        callback.onSuccess();
+        if (callback != null) {
+          callback.onSuccess();
+        }
+
+        return;
+      } else {
+        if (image.isGifBytes() && targetIsEx) {
+          Log.d(StatsSnapshot.TAG, "  Target is ImageViewEx and data is gif bytes.");
+          ImageViewEx targetEx = (ImageViewEx) target;
+          targetEx.setSource(image.getGifBytes());
+
+          if (callback != null) {
+            callback.onSuccess();
+          }
+
+          return;
+        } else if (image.isGifBytes()) {
+          Log.d(StatsSnapshot.TAG, "  Gif bytes content but target is not a ImageViewEx.");
+          // todo Set drawable as first frame
+        }
       }
-
-      return;
     }
 
     setPlaceHolder(target);

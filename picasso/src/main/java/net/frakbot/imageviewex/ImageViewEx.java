@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
 /**
@@ -84,6 +85,8 @@ public class ImageViewEx extends ImageView {
 
   protected Drawable mEmptyDrawable = new ColorDrawable(0x00000000);
   protected FillDirection mFillDirection = FillDirection.NONE;
+
+  private WeakReference<ImageViewExListener> listenerReference;
 
   ///////////////////////////////////////////////////////////
   ///                  CONSTRUCTORS                       ///
@@ -242,8 +245,14 @@ public class ImageViewEx extends ImageView {
       gif = Movie.decodeByteArray(src, 0, src.length);
     }
 
+    if (gif == null || gif.duration() == 0) {
+      if (listenerReference != null & listenerReference.get() != null) {
+        listenerReference.get().gifFailedToDecode();
+      }
+    }
+
     // If gif is null, it's probably not a gif
-    if (gif == null || !internalCanAnimate()) {
+    if (gif == null || !internalCanAnimate() || gif.duration() == 0) {
 
       // If not a gif and if on Android 3+, enable HW acceleration
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -1252,6 +1261,9 @@ public class ImageViewEx extends ImageView {
     super.setImageDrawable(mEmptyDrawable);
   }
 
+  public void setListener(ImageViewExListener listener) {
+    listenerReference = new WeakReference<ImageViewExListener>(listener);
+  }
 
   ///////////////////////////////////////////////////////////
   ///                  PRIVATE CLASSES                    ///
@@ -1537,5 +1549,12 @@ public class ImageViewEx extends ImageView {
       buffer = byteBuffer.toByteArray();
       return buffer;
     }
+  }
+
+  /**
+   * Events that external UI might want to handle regarding
+   */
+  public static interface ImageViewExListener {
+    public void gifFailedToDecode();
   }
 }

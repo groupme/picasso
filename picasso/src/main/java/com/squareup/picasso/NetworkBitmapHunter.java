@@ -57,8 +57,6 @@ class NetworkBitmapHunter extends BitmapHunter {
             ; // do some error handling
           bytesRead += n;
         }
-        Log.d(StatsSnapshot.TAG, "Gif content length: " + response.contentLength);
-        Log.d(StatsSnapshot.TAG, "Actually read bytes: " + bytesRead);
         return new Image(imgData);
       }
     } finally {

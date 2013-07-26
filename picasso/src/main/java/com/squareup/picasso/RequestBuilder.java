@@ -399,7 +399,7 @@ public class RequestBuilder {
         return;
       } else {
         if (image.isGifBytes() && targetIsEx) {
-          Log.d(StatsSnapshot.TAG, "  Target is ImageViewEx and data is gif bytes.");
+//          Log.d(StatsSnapshot.TAG, "  Target is ImageViewEx and data is gif bytes.");
           ImageViewEx targetEx = (ImageViewEx) target;
           targetEx.setSource(image.getGifBytes());
 
@@ -409,7 +409,7 @@ public class RequestBuilder {
 
           return;
         } else if (image.isGifBytes()) {
-          Log.d(StatsSnapshot.TAG, "  Gif bytes content but target is not a ImageViewEx.");
+          Log.w(StatsSnapshot.TAG, "  Gif bytes content but target is not a ImageViewEx, set as normal: NOT YET IMPLEMENTED");
           // todo Set drawable as first frame
         }
       }

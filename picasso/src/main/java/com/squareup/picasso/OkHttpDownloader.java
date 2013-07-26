@@ -94,7 +94,6 @@ public class OkHttpDownloader implements Downloader {
   }
 
   @Override public Response load(Uri uri, boolean localCacheOnly) throws IOException {
-    Log.d(StatsSnapshot.TAG, "Loading with okhttp");
     HttpURLConnection connection = openConnection(uri);
     connection.setUseCaches(true);
     if (localCacheOnly) {
@@ -104,9 +103,6 @@ public class OkHttpDownloader implements Downloader {
     boolean fromCache = parseResponseSourceHeader(connection.getHeaderField(RESPONSE_SOURCE));
     String contentType = connection.getHeaderField(RESPONSE_CONTENTTYPE);
     boolean isGif = parseResponseContentTypeHeader(contentType);
-    Log.d(StatsSnapshot.TAG, "*** Header: " + contentType);
-    Log.d(StatsSnapshot.TAG, "** isGif: " + isGif);
-
 
     return new Response(connection.getInputStream(), fromCache, isGif, connection.getContentLength());
   }

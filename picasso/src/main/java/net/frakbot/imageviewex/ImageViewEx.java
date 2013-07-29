@@ -74,7 +74,6 @@ public class ImageViewEx extends ImageView {
     private double mGifStartTime;
     private int mFrameDuration = 67;
     private final Handler mHandler = new Handler();
-    private Thread mUpdater;
 
     private ImageAlign mImageAlign = ImageAlign.NONE;
 
@@ -86,7 +85,7 @@ public class ImageViewEx extends ImageView {
     protected Drawable mEmptyDrawable = new ColorDrawable(0x00000000);
     protected FillDirection mFillDirection = FillDirection.NONE;
 
-    private WeakReference<ImageViewExListener> listenerReference;
+    private ImageViewExListener listenerReference;
     private boolean mIsAnimating;
 
     ///////////////////////////////////////////////////////////
@@ -248,8 +247,8 @@ public class ImageViewEx extends ImageView {
         }
 
         if (gif == null || gif.duration() == 0) {
-            if (listenerReference != null & listenerReference.get() != null) {
-                listenerReference.get().gifFailedToDecode();
+            if (listenerReference != null) {
+                listenerReference.gifFailedToDecode();
             }
         }
 
@@ -537,7 +536,7 @@ public class ImageViewEx extends ImageView {
      * @return true if animating, false otherwise.
      */
     public boolean isPlaying() {
-        return mUpdater != null && mUpdater.isAlive();
+        return mIsAnimating;
     }
 
     /**
@@ -711,51 +710,30 @@ public class ImageViewEx extends ImageView {
     ///                   PUBLIC METHODS                    ///
     ///////////////////////////////////////////////////////////
 
+    private class AnimationRunnable implements Runnable {
+        @Override public void run() {
+            if (mIsAnimating) {
+                invalidate();
+
+                mHandler.postDelayed(new AnimationRunnable(), mFrameDuration);
+            }
+        }
+    }
+
     /**
      * Starts playing the GIF, if it hasn't started yet.
      * FPS defaults to 15..
      */
     public void play() {
         // Do something if the animation hasn't started yet
-        if (mUpdater == null || !mUpdater.isAlive()) {
-            // Check id the animation is ready
-            if (!canPlay()) {
-                throw new IllegalStateException
-                        ("Animation can't start before a GIF is loaded.");
-            }
-
-            // todo This thread might be replaceable with a self scheduling handler
-            // Initialize the thread and start it
-            mUpdater = new Thread() {
-
-                @Override
-                public void run() {
-
-                    // Infinite loop: invalidates the View.
-                    // Stopped when the thread is stopped or interrupted.
-                    while (mUpdater != null && !mUpdater.isInterrupted()) {
-
-                        mHandler.post(new Runnable() {
-                            public void run() {
-                                if (mIsAnimating) {
-                                    invalidate();
-                                }
-                            }
-                        });
-
-                        // The thread sleeps until the next frame
-                        try {
-                            Thread.sleep(mFrameDuration);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        }
-                    }
-                }
-            };
-
-            mUpdater.start();
+        // Check id the animation is ready
+        if (!canPlay()) {
+            throw new IllegalStateException
+                    ("Animation can't start before a GIF is loaded.");
         }
+
         mIsAnimating = true;
+        mHandler.post(new AnimationRunnable());
     }
 
     /**
@@ -769,11 +747,8 @@ public class ImageViewEx extends ImageView {
      * Stops playing the GIF, if it has started.
      */
     public void stop() {
-        // If the animation has started
-        if (mUpdater != null && mUpdater.isAlive() && canPlay()) {
-            mUpdater.interrupt();
-            mGifStartTime = 0;
-        }
+        mIsAnimating = false;
+        mGifStartTime = 0;
     }
 
     /**
@@ -1266,7 +1241,7 @@ public class ImageViewEx extends ImageView {
     }
 
     public void setListener(ImageViewExListener listener) {
-        listenerReference = new WeakReference<ImageViewExListener>(listener);
+        listenerReference = listener;
     }
 
     ///////////////////////////////////////////////////////////
@@ -1367,10 +1342,13 @@ public class ImageViewEx extends ImageView {
                 measure(0, 0);
                 requestLayout();
 
-                play();
-
-                if (listenerReference != null & listenerReference.get() != null) {
-                    listenerReference.get().gifDecodedAndPlaying();
+                if (listenerReference != null) {
+                    if (listenerReference.gifDecodedShouldPlay()) {
+                        play();
+                    } else {
+                    }
+                } else {
+                    play();
                 }
             }
         }
@@ -1561,6 +1539,6 @@ public class ImageViewEx extends ImageView {
      */
     public static interface ImageViewExListener {
         public void gifFailedToDecode();
-        public void gifDecodedAndPlaying();
+        public boolean gifDecodedShouldPlay();
     }
 }

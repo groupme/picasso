@@ -30,13 +30,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.squareup.picasso.Picasso.Listener;
-import static com.squareup.picasso.TestUtils.BITMAP_1;
-import static com.squareup.picasso.TestUtils.URI_1;
-import static com.squareup.picasso.TestUtils.URI_KEY_1;
-import static com.squareup.picasso.TestUtils.mockCanceledRequest;
-import static com.squareup.picasso.TestUtils.mockImageViewTarget;
-import static com.squareup.picasso.TestUtils.mockRequest;
-import static com.squareup.picasso.TestUtils.mockTarget;
+import static com.squareup.picasso.TestUtils.*;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -99,8 +93,8 @@ public class PicassoTest {
     Request request2 = mockCanceledRequest();
     List<Request> list = Arrays.asList(request1, request2);
     picasso.complete(list, new Image(BITMAP_1), Picasso.LoadedFrom.MEMORY);
-    verify(request1).complete(BITMAP_1, Picasso.LoadedFrom.MEMORY);
-    verify(request2, never()).complete(eq(BITMAP_1), any(Picasso.LoadedFrom.class));
+    verify(request1).complete(IMAGE_1, Picasso.LoadedFrom.MEMORY);
+    verify(request2, never()).complete(eq(IMAGE_1), any(Picasso.LoadedFrom.class));
   }
 
   @Test public void errorInvokesAllNonCanceledRequestsAndListener() throws Exception {

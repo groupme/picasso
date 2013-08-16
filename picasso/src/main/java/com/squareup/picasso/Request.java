@@ -63,7 +63,7 @@ abstract class Request<T> {
     this.key = key;
   }
 
-  abstract void complete(Bitmap result, Picasso.LoadedFrom from);
+  abstract void complete(Image result, Picasso.LoadedFrom from);
 
   void complete(byte[] result, Picasso.LoadedFrom from) {
     // default no-op

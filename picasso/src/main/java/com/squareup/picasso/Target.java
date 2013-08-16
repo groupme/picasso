@@ -32,7 +32,7 @@ public interface Target {
    * <p/>
    * <strong>Note:</strong> You must not recycle the bitmap.
    */
-  void onSuccess(Bitmap bitmap, Picasso.LoadedFrom from);
+  void onSuccess(Image image, Picasso.LoadedFrom from);
 
   /** Callback indicating the image could not be successfully loaded. */
   void onError();

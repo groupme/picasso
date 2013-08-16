@@ -26,12 +26,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.squareup.picasso.Picasso.LoadedFrom.MEMORY;
-import static com.squareup.picasso.TestUtils.BITMAP_1;
-import static com.squareup.picasso.TestUtils.RESOURCE_ID_1;
-import static com.squareup.picasso.TestUtils.URI_1;
-import static com.squareup.picasso.TestUtils.URI_KEY_1;
-import static com.squareup.picasso.TestUtils.mockCallback;
-import static com.squareup.picasso.TestUtils.mockImageViewTarget;
+import static com.squareup.picasso.TestUtils.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -44,7 +39,7 @@ public class ImageViewRequestTest {
     ImageViewRequest request =
         new ImageViewRequest(mock(Picasso.class), URI_1, 0, mockImageViewTarget(), null, null,
             false, false, 0, null, URI_KEY_1, null);
-    request.complete((Bitmap) null, MEMORY);
+    request.complete((Image) null, MEMORY);
   }
 
   @Test
@@ -57,7 +52,7 @@ public class ImageViewRequestTest {
     ImageViewRequest request =
         new ImageViewRequest(picasso, mock(Uri.class), 0, target, null, null, false, false, 0, null,
             "", callback);
-    request.complete(BITMAP_1, MEMORY);
+    request.complete(IMAGE_1, MEMORY);
     verify(target).setImageDrawable(any(PicassoDrawable.class));
     verify(callback).onSuccess();
   }

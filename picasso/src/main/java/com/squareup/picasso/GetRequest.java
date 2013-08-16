@@ -12,7 +12,7 @@ class GetRequest extends Request<Void> {
         key);
   }
 
-  @Override void complete(Bitmap result, Picasso.LoadedFrom from) {
+  @Override void complete(Image result, Picasso.LoadedFrom from) {
   }
 
   @Override public void error() {

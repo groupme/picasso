@@ -36,7 +36,7 @@ final class TargetRequest extends Request<Target> {
     return weakTarget.get();
   }
 
-  @Override void complete(Bitmap result, Picasso.LoadedFrom from) {
+  @Override void complete(Image result, Picasso.LoadedFrom from) {
     if (result == null) {
       throw new AssertionError(
           String.format("Attempted to complete request with no result!\n%s", this));
@@ -44,7 +44,7 @@ final class TargetRequest extends Request<Target> {
     Target target = getTarget();
     if (target != null) {
       target.onSuccess(result, from);
-      if (result.isRecycled()) {
+      if (result.getBitmap().isRecycled()) {
         throw new IllegalStateException("Target callback must not recycle bitmap!");
       }
     }

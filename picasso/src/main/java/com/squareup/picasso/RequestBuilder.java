@@ -348,7 +348,7 @@ public class RequestBuilder {
     if (image != null) {
       picasso.cancelRequest(target);
       if (image.isBitmap()) {
-        target.onSuccess(image.getBitmap(), MEMORY);
+        target.onSuccess(image, MEMORY);
       }
       return;
     }

@@ -22,10 +22,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.squareup.picasso.Picasso.LoadedFrom.MEMORY;
-import static com.squareup.picasso.TestUtils.BITMAP_1;
-import static com.squareup.picasso.TestUtils.URI_1;
-import static com.squareup.picasso.TestUtils.URI_KEY_1;
-import static com.squareup.picasso.TestUtils.mockTarget;
+import static com.squareup.picasso.TestUtils.*;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -40,7 +37,7 @@ public class TargetRequestTest {
     TargetRequest request =
         new TargetRequest(mock(Picasso.class), URI_1, 0, mockTarget(), null, null, false,
             URI_KEY_1);
-    request.complete((Bitmap) null, MEMORY);
+    request.complete((Image) null, MEMORY);
   }
 
   @Test
@@ -48,8 +45,8 @@ public class TargetRequestTest {
     Target target = mockTarget();
     TargetRequest request =
         new TargetRequest(mock(Picasso.class), URI_1, 0, target, null, null, false, URI_KEY_1);
-    request.complete(BITMAP_1, MEMORY);
-    verify(target).onSuccess(BITMAP_1, MEMORY);
+    request.complete(IMAGE_1, MEMORY);
+    verify(target).onSuccess(IMAGE_1, MEMORY);
   }
 
   @Test
@@ -63,8 +60,8 @@ public class TargetRequestTest {
 
   @Test public void recyclingInSuccessThrowsException() {
     Target bad = new Target() {
-      @Override public void onSuccess(Bitmap bitmap, Picasso.LoadedFrom from) {
-        bitmap.recycle();
+      @Override public void onSuccess(Image image, Picasso.LoadedFrom from) {
+        image.getBitmap().recycle();
       }
 
       @Override public void onError() {
@@ -74,7 +71,7 @@ public class TargetRequestTest {
     Picasso picasso = mock(Picasso.class);
     TargetRequest tr = new TargetRequest(picasso, URI_1, 0, bad, null, null, false, URI_KEY_1);
     try {
-      tr.complete(BITMAP_1, any(Picasso.LoadedFrom.class));
+      tr.complete(IMAGE_1, any(Picasso.LoadedFrom.class));
       fail();
     } catch (IllegalStateException expected) {
     }

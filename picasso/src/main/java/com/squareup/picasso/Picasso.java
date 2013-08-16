@@ -221,11 +221,7 @@ public class Picasso {
     for (Request join : joined) {
       if (!join.isCancelled()) {
         targetToRequest.remove(join.getTarget());
-        if (result.isBitmap()) {
-          join.complete(result.getBitmap(), from);
-        } else {
-          join.complete(result.getBytes(), from);
-        }
+        join.complete(result, from);
       }
     }
   }

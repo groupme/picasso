@@ -34,6 +34,7 @@ import org.robolectric.annotation.Config;
 
 import static com.squareup.picasso.Picasso.LoadedFrom.MEMORY;
 import static com.squareup.picasso.TestUtils.BITMAP_1;
+import static com.squareup.picasso.TestUtils.IMAGE_1;
 import static com.squareup.picasso.TestUtils.URI_1;
 import static com.squareup.picasso.TestUtils.URI_KEY_1;
 import static com.squareup.picasso.TestUtils.mockImageViewTarget;
@@ -120,7 +121,7 @@ public class RequestBuilderTest {
     when(picasso.quickMemoryCacheCheck(URI_KEY_1)).thenReturn(new Image(BITMAP_1));
     Target target = mockTarget();
     new RequestBuilder(picasso, URI_1, 0).into(target);
-    verify(target).onSuccess(BITMAP_1, MEMORY);
+    verify(target).onSuccess(IMAGE_1, MEMORY);
     verify(picasso).cancelRequest(target);
     verify(picasso, never()).submit(any(Request.class));
   }

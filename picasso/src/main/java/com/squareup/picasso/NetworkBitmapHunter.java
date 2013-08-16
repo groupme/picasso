@@ -29,6 +29,7 @@ import static com.squareup.picasso.Picasso.LoadedFrom.DISK;
 import static com.squareup.picasso.Picasso.LoadedFrom.NETWORK;
 
 class NetworkBitmapHunter extends BitmapHunter {
+    public static final int SIZE_DOWNLOAD_MAX = 3 * 1024 * 1024;
     private final Downloader downloader;
     private final boolean airplaneMode;
     private Picasso.LoadedFrom loadedFrom;
@@ -47,10 +48,22 @@ class NetworkBitmapHunter extends BitmapHunter {
             Response response = getNetworkResponse(retryCount == 0 || airplaneMode);
             is = response.stream;
 
-            byte[] imgData = ImageViewEx.Converters.inputStreamToByteArray(is, response.contentLength);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(imgData, 0, imgData.length);
+            if (response.contentLength < SIZE_DOWNLOAD_MAX) {
 
-            return new Image(bitmap, imgData, response.isGif);
+                byte[] imgData = ImageViewEx.Converters.inputStreamToByteArray(is, response.contentLength);
+                Bitmap bitmap = decodeArray(imgData, options);
+
+                if (bitmap == null) {
+                    throw new IOException("Error decoding image stream.");
+                } else {
+                    Log.d(StatsSnapshot.TAG, uri.toString() + "Bitmap decoded with dimensions " + bitmap.getWidth() + ", " + bitmap.getHeight());
+
+                    return new Image(bitmap, imgData, response.isGif);
+                }
+            } else {
+                throw new IOException("Image file too big. > 2M");
+            }
+
         } finally {
             Utils.closeQuietly(is);
         }
@@ -64,6 +77,17 @@ class NetworkBitmapHunter extends BitmapHunter {
         Response response = downloader.load(uri, localCacheOnly);
         loadedFrom = response.cached ? DISK : NETWORK;
         return response;
+    }
+
+    private Bitmap decodeArray(byte[] imgBytes, PicassoBitmapOptions options) throws IOException {
+        if (imgBytes == null) {
+            return null;
+        }
+        if (options != null && options.inJustDecodeBounds) {
+            BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.length, options);
+            calculateInSampleSize(options);
+        }
+        return BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.length, options);
     }
 
     private Bitmap decodeStream(InputStream stream, PicassoBitmapOptions options) throws IOException {

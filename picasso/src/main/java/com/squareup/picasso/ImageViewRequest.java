@@ -21,7 +21,7 @@ class ImageViewRequest extends Request<ImageView> {
     this.callback = callback;
   }
 
-  @Override public void complete(Bitmap result, Picasso.LoadedFrom from) {
+  @Override public void complete(Image result, Picasso.LoadedFrom from) {
     if (result == null) {
       throw new AssertionError(
           String.format("Attempted to complete request with no result!\n%s", this));
@@ -34,7 +34,7 @@ class ImageViewRequest extends Request<ImageView> {
 
     Context context = picasso.context;
     boolean debugging = picasso.debugging;
-    PicassoDrawable.setBitmap(target, context, result, from, noFade, debugging);
+    PicassoDrawable.setBitmap(target, context, result.getBitmap(), from, noFade, debugging);
 
     if (callback != null) {
       callback.onSuccess();

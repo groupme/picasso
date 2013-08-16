@@ -16,7 +16,6 @@
 package com.squareup.picasso;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
@@ -225,7 +224,7 @@ public class Picasso {
         if (result.isBitmap()) {
           join.complete(result.getBitmap(), from);
         } else {
-          join.complete(result.getGifBytes(), from);
+          join.complete(result.getBytes(), from);
         }
       }
     }

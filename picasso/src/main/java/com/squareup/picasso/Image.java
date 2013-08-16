@@ -8,14 +8,17 @@ import android.graphics.Bitmap;
 public class Image {
 
   private Bitmap bitmap;
-  private byte[] gifBytes;
+  private byte[] bytes;
+  private boolean isGif = false;
 
   public Image(Bitmap bitmap) {
     this.bitmap = bitmap;
   }
 
-  public Image(byte[] gifBytes) {
-    this.gifBytes = gifBytes;
+  public Image(Bitmap bitmap, byte[] bytes, boolean isGif) {
+    this.bitmap = bitmap;
+    this.bytes = bytes;
+    this.isGif = isGif;
   }
 
   public Bitmap getBitmap() {
@@ -26,27 +29,27 @@ public class Image {
     this.bitmap = bitmap;
   }
 
-  public byte[] getGifBytes() {
-    return gifBytes;
+  public byte[] getBytes() {
+    return bytes;
   }
 
-  public void setGifBytes(byte[] gifBytes) {
-    this.gifBytes = gifBytes;
+  public void setBytes(byte[] bytes) {
+    this.bytes = bytes;
   }
 
   public boolean isBitmap() {
-    return bitmap != null;
+    return !isGif;
   }
 
-  public boolean isGifBytes() {
-    return gifBytes != null;
+  public boolean isGif() {
+    return isGif;
   }
 
   public int getSize() {
     if (isBitmap()) {
       return Utils.getBitmapBytes(bitmap);
-    } else if (isGifBytes()) {
-      return gifBytes.length;
+    } else if (isGif()) {
+      return bytes.length;
     }
     return 0;
   }

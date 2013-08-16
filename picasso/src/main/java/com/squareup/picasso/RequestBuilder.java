@@ -291,17 +291,26 @@ public class RequestBuilder {
   }
 
   /** Synchronously fulfill this request. Must not be called from the main thread. */
-  public Bitmap get() throws IOException {
+  public Image getImage() throws IOException {
     checkNotMain();
 
     if (uri == null && resourceId == 0) {
       return null;
     }
 
-    Request request = new GetRequest(picasso, uri, resourceId, options, transformations, skipCache);
+      String requestKey = createKey(uri, resourceId, options, transformations);
+    Request request = new GetRequest(picasso, uri, resourceId, options, transformations, skipCache, requestKey);
     // todo This is cheesy at the moment, pass in the Image
     return forRequest(picasso.context, picasso, picasso.dispatcher, picasso.cache, request,
-        picasso.dispatcher.downloader, Utils.isAirplaneModeOn(picasso.context)).hunt().getBitmap();
+            picasso.dispatcher.downloader, Utils.isAirplaneModeOn(picasso.context)).hunt();
+  }
+
+  public Bitmap get() throws IOException {
+      Image image = getImage();
+      if (image != null) {
+          return image.getBitmap();
+      }
+      return null;
   }
 
   /**
@@ -388,31 +397,26 @@ public class RequestBuilder {
     // Look for the target bitmap in the memory cache without moving to a background thread.
     Image image = picasso.quickMemoryCacheCheck(requestKey);
     if (image != null) {
-      if (image.isBitmap()) {
-        picasso.cancelRequest(target);
-        PicassoDrawable.setBitmap(target, picasso.context, image.getBitmap(), MEMORY, noFade, picasso.debugging);
-
-        if (callback != null) {
-          callback.onSuccess();
-        }
-
-        return;
-      } else {
-        if (image.isGifBytes() && targetIsEx) {
+        if (image.isGif() && targetIsEx) {
 //          Log.d(StatsSnapshot.TAG, "  Target is ImageViewEx and data is gif bytes.");
           ImageViewEx targetEx = (ImageViewEx) target;
-          targetEx.setSource(image.getGifBytes());
+          targetEx.setSource(image.getBytes());
 
           if (callback != null) {
             callback.onSuccess();
           }
 
           return;
-        } else if (image.isGifBytes()) {
-          Log.w(StatsSnapshot.TAG, "  Gif bytes content but target is not a ImageViewEx, set as normal: NOT YET IMPLEMENTED");
-          // todo Set drawable as first frame
+        } else {
+          picasso.cancelRequest(target);
+          PicassoDrawable.setBitmap(target, picasso.context, image.getBitmap(), MEMORY, noFade, picasso.debugging);
+
+          if (callback != null) {
+              callback.onSuccess();
+          }
+
+          return;
         }
-      }
     }
 
     setPlaceHolder(target);

@@ -19,6 +19,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
+import net.frakbot.imageviewex.ImageViewEx;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,66 +29,57 @@ import static com.squareup.picasso.Picasso.LoadedFrom.DISK;
 import static com.squareup.picasso.Picasso.LoadedFrom.NETWORK;
 
 class NetworkBitmapHunter extends BitmapHunter {
-  private final Downloader downloader;
-  private final boolean airplaneMode;
-  private Picasso.LoadedFrom loadedFrom;
+    private final Downloader downloader;
+    private final boolean airplaneMode;
+    private Picasso.LoadedFrom loadedFrom;
 
-  public NetworkBitmapHunter(Picasso picasso, Dispatcher dispatcher, Cache cache, Request request,
-      Downloader downloader, boolean airplaneMode) {
-    super(picasso, dispatcher, cache, request);
-    this.downloader = downloader;
-    this.airplaneMode = airplaneMode;
-  }
+    public NetworkBitmapHunter(Picasso picasso, Dispatcher dispatcher, Cache cache, Request request,
+                               Downloader downloader, boolean airplaneMode) {
+        super(picasso, dispatcher, cache, request);
+        this.downloader = downloader;
+        this.airplaneMode = airplaneMode;
+    }
 
-  @Override Image decode(Uri uri, PicassoBitmapOptions options, int retryCount)
-      throws IOException {
-    InputStream is = null;
-    try {
-      Response response = getNetworkResponse(retryCount == 0 || airplaneMode);
-      is = response.stream;
-      if (!response.isGif) {
-        return new Image(decodeStream(is, options));
-      } else {
-        // todo Set max size of gif and switch to single frame view
-        byte[] imgData = new byte[response.contentLength];
-        int bytesRead = 0;
-        while (bytesRead < imgData.length) {
-          int n = is.read(imgData, bytesRead, response.contentLength - bytesRead);
-          if (n <= 0)
-            ; // do some error handling
-          bytesRead += n;
+    @Override Image decode(Uri uri, PicassoBitmapOptions options, int retryCount)
+            throws IOException {
+        InputStream is = null;
+        try {
+            Response response = getNetworkResponse(retryCount == 0 || airplaneMode);
+            is = response.stream;
+
+            byte[] imgData = ImageViewEx.Converters.inputStreamToByteArray(is, response.contentLength);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(imgData, 0, imgData.length);
+
+            return new Image(bitmap, imgData, response.isGif);
+        } finally {
+            Utils.closeQuietly(is);
         }
-        return new Image(imgData);
-      }
-    } finally {
-      Utils.closeQuietly(is);
     }
-  }
 
-  @Override Picasso.LoadedFrom getLoadedFrom() {
-    return loadedFrom;
-  }
-
-  private Response getNetworkResponse(boolean localCacheOnly) throws IOException {
-    Response response = downloader.load(uri, localCacheOnly);
-    loadedFrom = response.cached ? DISK : NETWORK;
-    return response;
-  }
-
-  private Bitmap decodeStream(InputStream stream, PicassoBitmapOptions options) throws IOException {
-    if (stream == null) {
-      return null;
+    @Override Picasso.LoadedFrom getLoadedFrom() {
+        return loadedFrom;
     }
-    if (options != null && options.inJustDecodeBounds) {
-      MarkableInputStream markStream = new MarkableInputStream(stream);
-      stream = markStream;
 
-      long mark = markStream.savePosition(1024); // Mirrors BitmapFactory.cpp value.
-      BitmapFactory.decodeStream(stream, null, options);
-      calculateInSampleSize(options);
-
-      markStream.reset(mark);
+    private Response getNetworkResponse(boolean localCacheOnly) throws IOException {
+        Response response = downloader.load(uri, localCacheOnly);
+        loadedFrom = response.cached ? DISK : NETWORK;
+        return response;
     }
-    return BitmapFactory.decodeStream(stream, null, options);
-  }
+
+    private Bitmap decodeStream(InputStream stream, PicassoBitmapOptions options) throws IOException {
+        if (stream == null) {
+            return null;
+        }
+        if (options != null && options.inJustDecodeBounds) {
+            MarkableInputStream markStream = new MarkableInputStream(stream);
+            stream = markStream;
+
+            long mark = markStream.savePosition(1024); // Mirrors BitmapFactory.cpp value.
+            BitmapFactory.decodeStream(stream, null, options);
+            calculateInSampleSize(options);
+
+            markStream.reset(mark);
+        }
+        return BitmapFactory.decodeStream(stream, null, options);
+    }
 }

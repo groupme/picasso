@@ -26,6 +26,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
+import android.util.Log;
 import android.widget.ImageView;
 
 import static android.graphics.Color.WHITE;
@@ -175,6 +176,10 @@ final class PicassoDrawable extends Drawable {
   }
 
   private void drawDebugIndicator(Canvas canvas) {
+      if (loadedFrom == null) {
+          Log.w("Picasso", "Null loadedFrom. Not drawing indicator.");
+          return;
+      }
     canvas.save();
     canvas.rotate(45);
 

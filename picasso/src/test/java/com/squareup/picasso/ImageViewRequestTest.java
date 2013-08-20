@@ -54,7 +54,7 @@ public class ImageViewRequestTest {
             "", callback);
     request.complete(IMAGE_1, MEMORY);
     verify(target).setImageDrawable(any(PicassoDrawable.class));
-    verify(callback).onSuccess();
+    verify(callback).onSuccess(IMAGE_1);
   }
 
   @Test

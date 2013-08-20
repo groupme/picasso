@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ViewAnimator;
+import com.squareup.picasso.Image;
 import com.squareup.picasso.Picasso;
 
 import static android.content.Intent.ACTION_PICK;
@@ -72,7 +73,7 @@ public class SampleGalleryActivity extends PicassoSampleActivity {
     animator.setDisplayedChild(1);
 
     Picasso.with(this).load(image).into(imageView, new EmptyCallback() {
-      @Override public void onSuccess() {
+      @Override public void onSuccess(Image image) {
         // Index 0 is the image view.
         animator.setDisplayedChild(0);
       }

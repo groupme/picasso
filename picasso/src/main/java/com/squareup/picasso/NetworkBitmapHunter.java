@@ -50,15 +50,20 @@ class NetworkBitmapHunter extends BitmapHunter {
 
             if (response.contentLength < SIZE_DOWNLOAD_MAX) {
 
-                byte[] imgData = ImageViewEx.Converters.inputStreamToByteArray(is, response.contentLength);
-                Bitmap bitmap = decodeArray(imgData, options);
+                try {
+                    byte[] imgData = ImageViewEx.Converters.inputStreamToByteArray(is, response.contentLength);
+                    Bitmap bitmap = decodeArray(imgData, options);
 
-                if (bitmap == null) {
-                    throw new IOException("Error decoding image stream.");
-                } else {
-                    Log.d(StatsSnapshot.TAG, uri.toString() + "Bitmap decoded with dimensions " + bitmap.getWidth() + ", " + bitmap.getHeight());
+                    if (bitmap == null) {
+                        throw new IOException("Error decoding image stream.");
+                    } else {
+                        Log.d(StatsSnapshot.TAG, uri.toString() + "Bitmap decoded with dimensions " + bitmap.getWidth() + ", " + bitmap.getHeight());
 
-                    return new Image(bitmap, imgData, response.isGif);
+                        return new Image(bitmap, imgData, response.isGif);
+                    }
+                } catch (OutOfMemoryError e) {
+                    Log.e(StatsSnapshot.TAG, "Out of memory trying to download or decode image.", e);
+                    throw new IOException("Out of memory downloading or decoding image.");
                 }
             } else {
                 throw new IOException("Image file too big. > 2M");

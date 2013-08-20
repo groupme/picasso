@@ -397,13 +397,13 @@ public class RequestBuilder {
     // Look for the target bitmap in the memory cache without moving to a background thread.
     Image image = picasso.quickMemoryCacheCheck(requestKey);
     if (image != null) {
-        if (image.isGif() && targetIsEx) {
+        if (image.isGif() && targetIsEx && ImageViewEx.canAlwaysAnimate()) {
 //          Log.d(StatsSnapshot.TAG, "  Target is ImageViewEx and data is gif bytes.");
           ImageViewEx targetEx = (ImageViewEx) target;
           targetEx.setSource(image.getBytes());
 
           if (callback != null) {
-            callback.onSuccess();
+            callback.onSuccess(image);
           }
 
           return;
@@ -412,7 +412,7 @@ public class RequestBuilder {
           PicassoDrawable.setBitmap(target, picasso.context, image.getBitmap(), MEMORY, noFade, picasso.debugging);
 
           if (callback != null) {
-              callback.onSuccess();
+              callback.onSuccess(image);
           }
 
           return;

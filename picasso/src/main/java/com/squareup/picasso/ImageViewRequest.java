@@ -37,10 +37,11 @@ class ImageViewRequest extends Request<ImageView> {
     PicassoDrawable.setBitmap(target, context, result.getBitmap(), from, noFade, debugging);
 
     if (callback != null) {
-      callback.onSuccess();
+      callback.onSuccess(result);
     }
   }
 
+  // todo Review if this is needed
   @Override void complete(byte[] result, Picasso.LoadedFrom from) {
     if (result == null) {
       throw new AssertionError(
@@ -57,7 +58,7 @@ class ImageViewRequest extends Request<ImageView> {
     }
 
     if (callback != null) {
-      callback.onSuccess();
+      callback.onSuccess(null);
     }
   }
 

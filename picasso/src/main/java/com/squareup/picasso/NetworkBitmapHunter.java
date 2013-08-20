@@ -29,7 +29,6 @@ import static com.squareup.picasso.Picasso.LoadedFrom.DISK;
 import static com.squareup.picasso.Picasso.LoadedFrom.NETWORK;
 
 class NetworkBitmapHunter extends BitmapHunter {
-    public static final int SIZE_DOWNLOAD_MAX = 3 * 1024 * 1024;
     private final Downloader downloader;
     private final boolean airplaneMode;
     private Picasso.LoadedFrom loadedFrom;
@@ -48,7 +47,7 @@ class NetworkBitmapHunter extends BitmapHunter {
             Response response = getNetworkResponse(retryCount == 0 || airplaneMode);
             is = response.stream;
 
-            if (response.contentLength < SIZE_DOWNLOAD_MAX) {
+            if (response.contentLength < picasso.getDownloadSizeMax()) {
 
                 try {
                     byte[] imgData = ImageViewEx.Converters.inputStreamToByteArray(is, response.contentLength);
@@ -57,8 +56,6 @@ class NetworkBitmapHunter extends BitmapHunter {
                     if (bitmap == null) {
                         throw new IOException("Error decoding image stream.");
                     } else {
-                        Log.d(StatsSnapshot.TAG, uri.toString() + "Bitmap decoded with dimensions " + bitmap.getWidth() + ", " + bitmap.getHeight());
-
                         return new Image(bitmap, imgData, response.isGif);
                     }
                 } catch (OutOfMemoryError e) {

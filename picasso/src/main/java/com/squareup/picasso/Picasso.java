@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.util.Log;
 import android.widget.ImageView;
 import java.io.File;
 import java.lang.ref.ReferenceQueue;
@@ -89,6 +90,7 @@ public class Picasso {
   final ReferenceQueue<Object> referenceQueue;
 
   boolean debugging;
+  int downloadSizeMax = 3 * 1024 * 1024;
 
   Picasso(Context context, Dispatcher dispatcher, Cache cache, Listener listener, Stats stats,
       boolean debugging) {
@@ -99,6 +101,7 @@ public class Picasso {
     this.stats = stats;
     this.debugging = debugging;
     this.referenceQueue = new ReferenceQueue<Object>();
+    this.downloadSizeMax = Utils.calculateMaxDownloadSize(context);
 
     new CleanupThread(referenceQueue, HANDLER).start();
   }
@@ -192,6 +195,14 @@ public class Picasso {
   /** Toggle whether debug display, logging, and statistics are enabled. */
   @SuppressWarnings("UnusedDeclaration") public void setDebugging(boolean debugging) {
     this.debugging = debugging;
+  }
+
+  @SuppressWarnings("UnusedDeclaration") public int getDownloadSizeMax() {
+    return downloadSizeMax;
+  }
+
+  @SuppressWarnings("UnusedDeclaration") public void setDownloadSizeMax(int downloadSizeMax) {
+    this.downloadSizeMax = downloadSizeMax;
   }
 
   /** Creates a {@link StatsSnapshot} of the current stats for this instance. */

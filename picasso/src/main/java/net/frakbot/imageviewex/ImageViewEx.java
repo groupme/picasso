@@ -87,6 +87,7 @@ public class ImageViewEx extends ImageView {
 
     private ImageViewExListener listenerReference;
     private boolean mIsAnimating;
+    private boolean mContainsGif = false;
 
     ///////////////////////////////////////////////////////////
     ///                  CONSTRUCTORS                       ///
@@ -193,6 +194,7 @@ public class ImageViewEx extends ImageView {
     public void initializeDefaultValues() {
         if (isPlaying()) stop();
         mGif = null;
+        mContainsGif = false;
         setTag(null);
         mImageSource = IMAGE_SOURCE_UNKNOWN;
     }
@@ -208,6 +210,7 @@ public class ImageViewEx extends ImageView {
         if (src != null) {
             final ImageViewEx thisImageView = this;
             setImageDrawable(mEmptyDrawable);
+            mContainsGif = true;
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -232,6 +235,7 @@ public class ImageViewEx extends ImageView {
             try {
                 stop();
                 mGif = null;
+                mContainsGif = false;
                 setTag(null);
             } catch (Throwable ignored) {
             }
@@ -292,6 +296,7 @@ public class ImageViewEx extends ImageView {
         super.setImageResource(resId);
         mImageSource = IMAGE_SOURCE_RESOURCE;
         mGif = null;
+        mContainsGif = false;
     }
 
     /**
@@ -305,6 +310,7 @@ public class ImageViewEx extends ImageView {
         super.setImageDrawable(drawable);
         mBlockLayout = false;
         mGif = null;
+        mContainsGif = false;
         mImageSource = IMAGE_SOURCE_DRAWABLE;
     }
 
@@ -318,6 +324,7 @@ public class ImageViewEx extends ImageView {
         super.setImageBitmap(bm);
         mImageSource = IMAGE_SOURCE_BITMAP;
         mGif = null;
+        mContainsGif = false;
     }
 
     /**
@@ -704,6 +711,15 @@ public class ImageViewEx extends ImageView {
      */
     public ImageAlign getImageAlign() {
         return mImageAlign;
+    }
+
+    /**
+     * Does this image view contain gif data. This includes gif data that is currently
+     * being decoded, so the gif might not yet be playing.
+     * @return
+     */
+    public boolean isContainsGif() {
+        return mContainsGif;
     }
 
     ///////////////////////////////////////////////////////////

@@ -34,31 +34,14 @@ class ImageViewRequest extends Request<ImageView> {
 
     Context context = picasso.context;
     boolean debugging = picasso.debugging;
-    PicassoDrawable.setBitmap(target, context, result.getBitmap(), from, noFade, debugging);
+    if (target instanceof ImageViewEx && result.isGif()) {
+      ((ImageViewEx)target).setSource(result.getBytes());
+    } else {
+      PicassoDrawable.setBitmap(target, context, result.getBitmap(), from, noFade, debugging);
+    }
 
     if (callback != null) {
       callback.onSuccess(result);
-    }
-  }
-
-  // todo Review if this is needed
-  @Override void complete(byte[] result, Picasso.LoadedFrom from) {
-    if (result == null) {
-      throw new AssertionError(
-          String.format("Attempted to complete request with no result!\n%s", this));
-    }
-
-    ImageView target = this.target.get();
-    if (target == null) {
-      return;
-    }
-
-    if (target instanceof ImageViewEx) {
-      ((ImageViewEx)target).setSource(result);
-    }
-
-    if (callback != null) {
-      callback.onSuccess(null);
     }
   }
 

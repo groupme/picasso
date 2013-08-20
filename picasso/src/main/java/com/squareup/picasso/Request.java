@@ -65,10 +65,6 @@ abstract class Request<T> {
 
   abstract void complete(Image result, Picasso.LoadedFrom from);
 
-  void complete(byte[] result, Picasso.LoadedFrom from) {
-    // default no-op
-  }
-
   abstract void error();
 
   void cancel() {
